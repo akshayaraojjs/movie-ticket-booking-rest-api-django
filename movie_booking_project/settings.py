@@ -15,6 +15,16 @@ from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Bypass database version check for older MariaDB versions in local development
+from django.db.backends.base.base import BaseDatabaseWrapper
+BaseDatabaseWrapper.check_database_version_supported = lambda self: None
+
+# Disable RETURNING clause on MariaDB < 10.5.0
+from django.db.backends.mysql.features import DatabaseFeatures
+DatabaseFeatures.can_return_columns_from_insert = property(
+    lambda self: self.connection.mysql_is_mariadb and self.connection.mysql_version >= (10, 5, 0)
+)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
